@@ -1,0 +1,37 @@
+{
+	"name": "fetch-bvg-occupancy",
+	"description": "Scrape average occupancies of Berlin public transport's lines.",
+	"version": "1.0.0",
+	"main": "index.js",
+	"files": [
+		"index.js",
+		"example.js"
+	],
+	"keywords": [
+		"occupancy",
+		"load factor",
+		"crowdedness",
+		"bvg",
+		"berlin",
+		"public transport",
+		"transit"
+	],
+	"author": "Jannis R <mail@jannisr.de>",
+	"homepage": "https://github.com/derhuerst/fetch-bvg-occupancy",
+	"repository": "derhuerst/fetch-bvg-occupancy",
+	"bugs": "https://github.com/derhuerst/fetch-bvg-occupancy/issues",
+	"license": "ISC",
+	"engines": {
+		"node": ">=16"
+	},
+	"dependencies": {
+	},
+	"devDependencies": {
+		"eslint": "^7.9.0"
+	},
+	"scripts": {
+		"test": "node test.js",
+		"lint": "eslint .",
+		"prepublishOnly": "npm run lint && npm test"
+	}
+}
