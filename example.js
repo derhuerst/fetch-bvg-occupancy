@@ -1,11 +1,19 @@
 'use strict'
 
 const {inspect} = require('util')
-const scrapeOccupancies = require('.')
+const {scrapeLines, scrapeOccupancies} = require('.')
 
 ;(async () => {
-	const occupancies = await scrapeOccupancies()
-	console.log(inspect(occupancies, {depth: null, colors: true}))
+	const lines = await scrapeLines()
+	console.log('lines:')
+	console.log(...lines)
+
+	for (const line of lines) {
+		console.log('\n\n')
+		console.log('line', line)
+		const occupancies = await scrapeOccupancies(lines[0])
+		console.log(inspect(occupancies, {depth: null, colors: true}))
+	}
 })()
 .catch((err) => {
 	console.error(err)

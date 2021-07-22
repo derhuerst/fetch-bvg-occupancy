@@ -1,7 +1,7 @@
 'use strict'
 
 const get = require('lodash/get')
-const {ok} = require('assert')
+const {ok, equal} = require('assert')
 const queryPowerBIQuerydataAPI = require('./lib/query-power-bi')
 const parseDataset = require('./lib/parse-dataset')
 
@@ -25,7 +25,37 @@ const literalExpression = (val) => ({
 	Literal: {Value: val},
 })
 
-const QUERY_CMD = {
+const linesQuery = {
+	SemanticQueryDataShapeCommand: {
+		Query: {
+			Version: 2,
+			From: [{
+				Name: 'data',
+				Entity: '0069_0700_Export',
+			}],
+			Select: [{
+				Column: columnExpression('data', 'Linie'),
+				Name: 'line',
+			}],
+		},
+		Binding: {
+			Primary: {
+				Groupings: [{
+					Projections: [0],
+				}],
+			},
+			DataReduction: {
+				DataVolume: 3,
+				Primary: {
+					Top: {Count: 1000},
+				},
+			},
+			Version: 1
+		},
+	},
+}
+
+const occupanciesQuery = (line) => ({
 	SemanticQueryDataShapeCommand: {
 		Binding: {
 			DataReduction: {
@@ -75,6 +105,20 @@ const QUERY_CMD = {
 					Name: 'occupancy',
 				},
 			],
+			Where: [
+				{
+					Condition: {
+						In: {
+							Expressions: [{
+								Column: columnExpression('data', 'Linie'),
+							}],
+							Values: [
+								[literalExpression(`'${line}'`)],
+							],
+						}
+					}
+				},
+			],
 			OrderBy: [{
 				Direction: 1,
 				Expression: {
@@ -93,7 +137,7 @@ const QUERY_CMD = {
 			}],
 		}
 	}
-}
+})
 
 const queryBVGPowerBIReport = async (queryCmd) => {
 	const result = await queryPowerBIQuerydataAPI({
@@ -119,16 +163,20 @@ const queryBVGPowerBIReport = async (queryCmd) => {
 	return parsed
 }
 
-const scrapeOccupancies = async () => {
-	const result = await queryBVGPowerBIReport(QUERY_CMD)
+const scrapeLines = async () => {
+	const result = await queryBVGPowerBIReport(linesQuery)
+	return result.map(({data: {line}}) => line)
+}
 
-	const byLine = new Map() // line -> variant -> stop -> [[hour, occupancy], ...]
-	for (const {data: {line, variant, stop}, children: _occupancies} of result) {
+const scrapeOccupancies = async (line) => {
+	equal(typeof line, 'string', 'line must be a string')
+	ok(line, 'line must not be empty')
+
+	const result = await queryBVGPowerBIReport(occupanciesQuery(line))
+
+	const byVariant = new Map() // variant -> stop -> [[hour, occupancy], ...]
+	for (const {data: {variant, stop}, children: _occupancies} of result) {
 		if (_occupancies.length === 0) continue // todo: is this a parsing bug?
-
-		let byVariant = new Map()
-		if (byLine.has(line)) byVariant = byLine.get(line)
-		else byLine.set(line, byVariant)
 
 		let byStop = new Map()
 		if (byVariant.has(variant)) byStop = byVariant.get(variant)
@@ -140,7 +188,10 @@ const scrapeOccupancies = async () => {
 		])
 		byStop.set(stop, occupancies)
 	}
-	return byLine
+	return byVariant
 }
 
-module.exports = scrapeOccupancies
+module.exports = {
+	scrapeLines,
+	scrapeOccupancies,
+}
