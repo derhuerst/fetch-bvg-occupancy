@@ -1,7 +1,8 @@
 'use strict'
 
-const {deepStrictEqual: eql} = require('assert')
+const {deepStrictEqual: eql, ok} = require('assert')
 const parseDataset = require('./lib/parse-dataset')
+const {scrapeLines, scrapeOccupancies} = require('.')
 
 const descriptorA = {
 	Select: [
@@ -2205,4 +2206,50 @@ eql(parseDataset(datasetA, descriptorA), [
 	},
 ])
 
-// todo: test scrapeOccupancies
+;(async () => {
+
+	const lines = await scrapeLines()
+	ok(Array.isArray(lines), 'scrapeLines should return an array')
+	ok(lines.length > 0, 'should return >0 lines')
+
+	for (let i = 0; i < Math.min(lines.length, 5); i++) {
+		const line = lines[i]
+		const byVariant = await scrapeOccupancies(line)
+		console.log(line, byVariant)
+
+		const flat = Array.from(byVariant.entries())
+		.flatMap(([variant, byStop]) => {
+			return Array.from(byStop.entries())
+			.map(([stop, occupancies]) => ({variant, stop, occupancies}))
+		})
+		ok(flat.length > 2 * 5, `${line}: too few results`) // >=2 variants, >=5 stops
+
+		for (const {variant, stop, occupancies} of flat) {
+			const msgPrefix = `${line}, ${variant}, ${stop} – `
+
+			eql(typeof variant, 'string', msgPrefix + ' – invalid variant')
+			ok(variant, 'string', msgPrefix + ' – invalid variant')
+
+			eql(typeof stop, 'string', msgPrefix + ' – invalid stop')
+			ok(stop, 'string', msgPrefix + ' – invalid stop')
+
+			ok(Array.isArray(occupancies), msgPrefix + ' – invalid occupancies')
+			ok(occupancies.length > 0, msgPrefix + ' – invalid occupancies')
+
+			for (let i = 0; i < occupancies.length; i++) {
+				const [hour, occupancy] = occupancies[i]
+
+				ok(Number.isInteger(hour), `${msgPrefix}.occupancies[${i}] – invalid hour`)
+				if (occupancy !== null) {
+					eql(typeof hour, 'number', `${msgPrefix}.occupancies[${i}] – invalid occupancy`)
+				}
+			}
+		}
+	}
+
+	console.info('looks good! ✔︎')
+})()
+.catch((err) => {
+	console.error(err)
+	process.exit(1)
+})
