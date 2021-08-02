@@ -1,6 +1,6 @@
 # fetch-bvg-occupancy
 
-**Boilerplate for modules I write.**
+**Scrape the average occupancy of [BVG](https://en.wikipedia.org/wiki/Berliner_Verkehrsbetriebe) lines from [their Power BI Report](https://app.powerbi.com/view?r=eyJrIjoiYWQ4ZTRlMTMtMDgxYy00MzJjLWFkNjgtNmUwNTRjOGE4OWFmIiwidCI6ImMxZGViZDk4LWM0ODEtNGU1MS1iMjg2LWY2ZWRhOGZjZWE0OCIsImMiOjh9).**
 
 [![npm version](https://img.shields.io/npm/v/fetch-bvg-occupancy.svg)](https://www.npmjs.com/package/fetch-bvg-occupancy)
 ![ISC-licensed](https://img.shields.io/github/license/derhuerst/fetch-bvg-occupancy.svg)

@@ -1,7 +1,7 @@
 {
 	"name": "fetch-bvg-occupancy",
 	"description": "Scrape average occupancies of Berlin public transport's lines.",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"main": "index.js",
 	"files": [
 		"index.js",

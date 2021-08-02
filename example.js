@@ -11,7 +11,7 @@ const {scrapeLines, scrapeOccupancies} = require('.')
 	for (const line of lines) {
 		console.log('\n\n')
 		console.log('line', line)
-		const occupancies = await scrapeOccupancies(lines[0])
+		const occupancies = await scrapeOccupancies(line)
 		console.log(inspect(occupancies, {depth: null, colors: true}))
 	}
 })()
